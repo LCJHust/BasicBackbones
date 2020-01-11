@@ -124,7 +124,7 @@ class DenseNet_Bb(nn.Module):
         }
 
         if num_layers not in densenets:
-            raise ValueError("{} is not a valid number of resnet layers".format(num_layers))
+            raise ValueError("{} is not a valid number of densenet layers".format(num_layers))
 
         self.densenet_bb = densenets[num_layers]()
 
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     densenet_backbone = densenet_backbone.cuda()
 
     inputs = torch.randn((2, 3, 512, 768)).float().cuda()
-    output = densenet_backbone(inputs)
+    output = densenet_backbone.forward(inputs)
 
     print("output shape: ", output.shape)
 
