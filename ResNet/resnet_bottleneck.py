@@ -35,7 +35,6 @@ class BottleNeck(nn.Module):
         out = self.relu(out)
         return out
 
-
 if __name__ == '__main__':
     module = BottleNeck(32, 64)
     module = module.cuda()
