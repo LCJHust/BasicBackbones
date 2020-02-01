@@ -7,7 +7,6 @@ import torch.nn as nn
 from torch.nn import BatchNorm2d as bn
 import numpy as np
 
-
 def conv3x3(in_channels, out_channels, stride=1):
     return nn.Conv2d(in_channels, out_channels, 3, stride, padding=1, bias=False)
 
