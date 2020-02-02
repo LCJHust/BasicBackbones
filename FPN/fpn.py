@@ -55,7 +55,7 @@ class FPN(nn.Module):
         self.smooth1 = nn.Conv2d(256, 256, 3, 1, 1)
         self.smooth2 = nn.Conv2d(256, 256, 3, 1, 1)
         self.smooth3 = nn.Conv2d(256, 256, 3, 1, 1)
-        # Connection
+        # lateral connection
         self.latlayer1 = nn.Conv2d(1024, 256, 1, 1, 0)
         self.latlayer2 = nn.Conv2d( 512, 256, 1, 1, 0)
         self.latlayer3 = nn.Conv2d( 256, 256, 1, 1, 0)

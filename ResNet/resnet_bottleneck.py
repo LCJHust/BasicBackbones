@@ -39,7 +39,7 @@ if __name__ == '__main__':
     module = BottleNeck(32, 64)
     module = module.cuda()
 
-    x = torch.randn((3, 32, 160, 320)).float().cuda()
+    x = torch.randn((3, 64, 160, 320)).float().cuda()
     output = module(x)
 
     print("output shape:", output.shape)
