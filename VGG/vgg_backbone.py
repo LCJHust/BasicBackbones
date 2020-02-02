@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 class VGG(nn.Module):
-    def __init__(self, features, num_classes=21):
+    def __init__(self, features, num_classes=1000, init_weights=True):
         super(VGG, self).__init__()
         self.features = features
         self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
@@ -19,6 +19,17 @@ class VGG(nn.Module):
             nn.Dropout(),
             nn.Linear(4096, num_classes))
 
+        if init_weights:
+            self._initialize_weights()
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
+        return x
+
+    def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -31,7 +42,7 @@ class VGG(nn.Module):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
 
-def _make_layers(cfg):
+def _make_layers(cfg, batch_norm=False):
         layers = []
         in_channels = 3
 
@@ -40,20 +51,15 @@ def _make_layers(cfg):
                 layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
             else:
                 conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+                if batch_norm:
+                    layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+                else:
+                    layers += [conv2d, nn.ReLU(inplace=True)]
                 in_channels = v
         return nn.Sequential(*layers)
 
-def _vgg(layer_cfg, pretrained_path=None, **kwargs):
-    model = VGG(_make_layers(layer_cfg), **kwargs)
-
-    if pretrained_path is not None:
-        checkpoint = torch.load(pretrained_path)
-        model.load_state_dict(checkpoint, strict=False)
-    return model
-
 class VGG_backbone(nn.Module):
-    def __init__(self, num_layers, pretrained_path=None):
+    def __init__(self, num_layers, batch_norm, pretrained_path=None, **kwargs):
         super(VGG_backbone, self).__init__()
 
         vgg_nets = {
@@ -66,11 +72,26 @@ class VGG_backbone(nn.Module):
         if num_layers not in vgg_nets:
             raise ValueError("{} is not a valid number of vgg layers".format(num_layers))
 
-        self.vgg_bb = _vgg(vgg_nets[num_layers])
+        if pretrained_path is not None:
+            kwargs['init_weights'] = False
+
+        self.vgg_bb = VGG(_make_layers(vgg_nets[num_layers], batch_norm=batch_norm), **kwargs)
+
+        if pretrained_path is not None:
+            checkpoint = torch.load(pretrained_path)
+            self.vgg_bb.load_state_dict(checkpoint, strict=False)
 
     def forward(self, x):
-        return self.vgg_bb
+        x = self.vgg_bb.features(x)
+
+        return x
 
 if __name__ == "__main__":
-    vgg = VGG_backbone(19)
+    pretrained_path = '/home/lcj/.cache/torch/checkpoints/vgg19_bn.pth'
+    vgg = VGG_backbone(19, True, pretrained_path)
+    inputs = torch.randn(1, 3, 224, 224).float()
+    outputs = vgg(inputs)
+    print("outputs: ", outputs.shape)
     print("*")
+
+
