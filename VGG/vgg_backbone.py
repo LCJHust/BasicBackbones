@@ -83,7 +83,6 @@ class VGG_backbone(nn.Module):
 
     def forward(self, x):
         x = self.vgg_bb.features(x)
-
         return x
 
 if __name__ == "__main__":
@@ -93,5 +92,4 @@ if __name__ == "__main__":
     outputs = vgg(inputs)
     print("outputs: ", outputs.shape)
     print("*")
-
 
